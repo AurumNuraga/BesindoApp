@@ -1,0 +1,554 @@
+<x-layout>
+    @if(session('success'))
+    <div id="successModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-sm text-center border-4 border-blue-600">
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Sukses!</h3>
+            <p class="text-gray-500 mb-4">{{ session('success') }}</p>
+            <button onclick="document.getElementById('successModal').style.display='none'" class="w-full bg-blue-600 text-white font-bold py-2 rounded">OK</button>
+        </div>
+    </div>
+    @endif
+
+    <div class="flex justify-between items-center mb-2">
+        <h2 class="text-xl font-bold text-gray-700"><i class="fas fa-desktop mr-2"></i>Entry Data Penjualan (Invoicing)</h2>
+        <a href="{{ route('dashboard') }}" class="text-sm font-bold text-red-600 hover:text-red-800"><i class="fas fa-times-circle mr-1"></i> Tutup</a>
+    </div>
+
+    <div class="bg-gray-300 p-1 rounded border border-gray-500 shadow-xl">
+        
+        <div class="bg-gradient-to-b from-gray-200 to-gray-400 border border-gray-400 p-1 rounded-t mb-1 flex justify-between items-center">
+            <span class="text-xs font-bold text-gray-700 px-2">PENJUALAN</span>
+            <span class="text-xs text-gray-500">Informasi Tambahan</span>
+        </div>
+
+        <form action="{{ route('sales.store') }}" method="POST" class="bg-gray-200 p-2 border border-gray-400 rounded">
+            @csrf
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 mb-2 text-xs">
+                
+                <div class="space-y-1">
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">No Faktur</label>
+                        <input type="text" name="invoice_code" value="{{ $code }}" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Jenis Transaksi</label>
+                        <select name="transaction_type" id="transactionType" class="flex-1 border border-gray-400 px-2 py-0.5">
+                        <option value="Cash">CASH & CARRY</option>
+                            <option value="Credit">KREDIT</option>
+                            <option value="Cash">TRANSFER BANK</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Lama Kredit</label>
+                        <div class="flex items-center">
+                            <input type="number" name="credit_days" id="creditDays" value="0" class="w-16 border border-gray-400 px-2 py-0.5 text-right" oninput="calcDueDate()">
+                            <span class="ml-2">Hari</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Tgl Faktur</label>
+                        <div class="flex items-center w-full gap-2">
+                            <input type="date" name="transaction_date" id="trxDate" value="{{ date('Y-m-d') }}" class="w-32 border border-gray-400 px-2 py-0.5" onchange="calcDueDate()">
+                            <span class="font-bold">s/d</span>
+                            <input type="date" name="due_date" id="dueDate" class="w-32 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Faktur Manual</label>
+                        <input type="text" name="manual_invoice_number" class="flex-1 border border-gray-400 px-2 py-0.5">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                <div class="flex items-center">
+    <label class="w-24 font-bold text-gray-800">Pelanggan</label>
+    <div class="flex flex-1 gap-1">
+        <input type="hidden" name="customer_id" id="custId" required>
+        <input type="text" id="custDisplay" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly placeholder="Klik cari untuk pilih...">
+        <button type="button" onclick="openCustModal()" class="bg-blue-600 text-white px-3 text-xs rounded hover:bg-blue-700">
+            <i class="fas fa-search"></i> Cari
+        </button>
+    </div>
+</div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Nama</label>
+                        <input type="text" id="custName" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Kode Rayon</label>
+                        <div class="flex flex-1 gap-1">
+                            <input type="text" name="rayon_code" id="rayonCode" class="w-20 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                            <input type="text" name="rayon_name" id="rayonName" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Alamat</label>
+                        <input type="text" id="custAddr" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Kode Sales</label>
+                        <select name="user_id" class="flex-1 border border-gray-400 px-2 py-0.5" required>
+                            @foreach($salesmen as $s) <option value="{{ $s->id }}">{{ $s->name }}</option> @endforeach
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Nama Sales</label>
+                        <input type="text" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly value="(Auto)">
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Kota</label>
+                        <input type="text" name="city" id="custCity" class="flex-1 border border-gray-400 bg-gray-100 px-2 py-0.5" readonly>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="w-24 font-bold text-gray-800">Lokasi Gudang</label>
+                        <select name="warehouse_id" class="flex-1 border border-gray-400 px-2 py-0.5">
+                            @foreach($warehouses as $wh) <option value="{{ $wh->id }}">{{ $wh->name }}</option> @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border border-gray-500 bg-white mb-2 overflow-x-auto" style="min-height: 250px;">
+                <table class="w-full text-xs border-collapse" id="itemTable">
+                    <thead class="bg-blue-800 text-white font-bold">
+                        <tr>
+                            <th class="p-1 border border-gray-400 w-8">No</th>
+                            <th class="p-1 border border-gray-400 w-24">Kode Barang</th>
+                            <th class="p-1 border border-gray-400 min-w-[150px]">Nama Barang</th>
+                            <th class="p-1 border border-gray-400 w-12">Qty</th>
+                            <th class="p-1 border border-gray-400 w-16">Satuan</th>
+                            <th class="p-1 border border-gray-400 w-20">Harga</th>
+                            <th class="p-1 border border-gray-400 w-8">% 1</th>
+                            <th class="p-1 border border-gray-400 w-8">% 2</th>
+                            <th class="p-1 border border-gray-400 w-16">Disc Reg</th>
+                            <th class="p-1 border border-gray-400 w-16">Disc Promo</th>
+                            <th class="p-1 border border-gray-400 w-24">SubTotal</th>
+                            <th class="p-1 border border-gray-400 w-12">STOK</th>
+                            <th class="p-1 border border-gray-400 w-8">#</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        </tbody>
+                </table>
+                <button type="button" onclick="addRow()" class="m-2 bg-gray-200 border border-gray-400 px-2 py-1 text-xs hover:bg-gray-300">+ Tambah Baris (F2)</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-400 pt-2 text-xs">
+                
+                <div class="flex flex-col justify-between">
+                    <div class="flex items-center mb-2">
+                        <label class="w-32 font-bold text-gray-800">MEMO UNTUK PELANGGAN</label>
+                        <input type="text" name="notes" class="flex-1 border border-gray-400 px-2 py-0.5">
+                    </div>
+                    
+                    <div class="flex items-end gap-2 mt-auto">
+                        <button type="submit" class="bg-gray-100 border border-gray-400 px-4 py-2 font-bold hover:bg-gray-200 shadow flex items-center">
+                            <i class="fas fa-save mr-1 text-blue-600"></i> Simpan
+                        </button>
+                        <button type="reset" class="bg-gray-100 border border-gray-400 px-4 py-2 font-bold hover:bg-gray-200 shadow flex items-center">
+                            <i class="fas fa-trash mr-1 text-red-600"></i> Hapus
+                        </button>
+                        <button type="button" class="bg-gray-100 border border-gray-400 px-4 py-2 font-bold hover:bg-gray-200 shadow flex items-center">
+                            <i class="fas fa-print mr-1 text-gray-600"></i> Cetak
+                        </button>
+                        <a href="#" class="bg-gray-100 border border-gray-400 px-4 py-2 font-bold hover:bg-gray-200 shadow flex items-center text-blue-800">
+                            <i class="fas fa-door-open mr-1"></i> Tutup
+                        </a>
+                    </div>
+                </div>
+
+                <div class="space-y-1 bg-gray-100 p-2 border border-gray-300">
+                    <div class="flex justify-between items-center">
+                        <label class="w-40">Subtotal</label>
+                        <input type="text" id="dispSubtotal" class="w-32 text-right bg-gray-200 px-1 border border-gray-400" readonly value="0">
+                        <input type="hidden" name="subtotal_hidden" id="subtotalHidden">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label class="w-40">Diskon ( % / Rp )</label>
+                        <div class="flex gap-1 w-42">
+                            <input type="number" name="discount_percent" id="discPct" class="w-10 text-center bg-white border border-gray-400" value="0" oninput="calculateFooter()">
+                            <input type="number" name="discount_amount" id="discAmt" class="w-32 text-right bg-gray-200 px-1 border border-gray-400" value="0" oninput="calculateFooter()">
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label class="w-40">Subtotal - PPn</label>
+                        <input type="text" name="subtotal_after_disc" id="subAfterDisc" class="w-32 text-right bg-gray-200 px-1 border border-gray-400" readonly value="0">
+                        <input type="hidden" name="subtotal_after_disc_hidden" id="subAfterDiscHidden">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label class="w-40">Biaya Ekspedisi</label>
+                        <input type="number" name="shipping_cost" id="shipCost" class="w-32 text-right bg-white px-1 border border-gray-400" value="0" oninput="calculateFooter()">
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <label class="w-40">Biaya Lain</label>
+                        <input type="number" name="other_cost" id="otherCost" class="w-32 text-right bg-white px-1 border border-gray-400" value="0" oninput="calculateFooter()">
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <label class="w-40">Dibayar / Uang Muka</label>
+                        <input type="number" name="down_payment" id="downPayment" class="w-32 text-right bg-white px-1 border border-gray-400" value="0" oninput="calculateFooter()">
+                    </div>
+                    <div class="flex justify-between items-center border-t border-gray-300 pt-1 font-bold">
+                        <label class="w-40">Saldo Terhutang</label>
+                        <input type="text" id="dispGrandTotal" class="w-32 text-right bg-gray-200 px-1 border border-gray-400 font-bold" readonly value="0">
+                        <input type="hidden" name="grand_total_hidden" id="grandTotalHidden">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const products = @json($products);
+        let rowCount = 0;
+
+        function openCustModal() { document.getElementById('customerModal').classList.remove('hidden'); }
+    function closeCustModal() { document.getElementById('customerModal').classList.add('hidden'); }
+
+    function selectCustomer(id, name, addr, city) {
+        document.getElementById('custId').value = id;
+        document.getElementById('custDisplay').value = name;
+        document.getElementById('custName').value = name;
+        document.getElementById('custAddr').value = addr;
+        document.getElementById('custCity').value = city;
+        closeCustModal();
+    }
+
+    function filterCustTable() {
+        let input = document.getElementById("searchCust").value.toLowerCase();
+        let rows = document.querySelectorAll("#custTableBody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+        });
+    }
+
+        function calcDueDate() {
+            const dateStr = document.getElementById('trxDate').value;
+            const days = parseInt(document.getElementById('creditDays').value) || 0;
+            if(dateStr) {
+                const date = new Date(dateStr);
+                date.setDate(date.getDate() + days);
+                document.getElementById('dueDate').value = date.toISOString().split('T')[0];
+            }
+        }
+
+        function fillCustInfo() {
+            const sel = document.getElementById('custSelect');
+            const opt = sel.options[sel.selectedIndex];
+            document.getElementById('custName').value = opt.getAttribute('data-name') || '';
+            document.getElementById('custAddr').value = opt.getAttribute('data-addr') || '';
+            document.getElementById('custCity').value = opt.getAttribute('data-city') || '';
+            document.getElementById('rayonCode').value = opt.getAttribute('data-rayon') || '';
+            document.getElementById('rayonName').value = opt.getAttribute('data-rname') || '';
+        }
+
+        function addRow() {
+        rowCount++;
+        const tbody = document.getElementById('tableBody');
+        
+        // Buat opsi berdasarkan NAMA BARANG
+        let opts = '<option value="">-- Pilih Nama Barang --</option>';
+        products.forEach(p => {
+            opts += `<option value="${p.id}" data-price="${p.sell_price ?? 0}" data-unit="${p.unit ?? 'Pcs'}" data-stock="${p.stock ? p.stock.stock : 0}">${p.name}</option>`;
+        });
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b hover:bg-blue-50";
+        tr.innerHTML = `
+            <td class="p-1 border border-gray-300 text-center">${rowCount}</td>
+            <td class="p-1 border border-gray-300">
+                <input type="text" class="w-full border-none bg-transparent prod-code text-center" readonly placeholder="-">
+            </td>
+            <td class="p-1 border border-gray-300">
+                <select name="products[${rowCount}][id]" class="w-full border-none bg-transparent font-bold select-prod" onchange="setProd(this)" required>
+                    ${opts}
+                </select>
+            </td>
+            <td class="p-1 border border-gray-300">
+                <input type="number" name="products[${rowCount}][qty]" class="w-full border-none bg-transparent text-center qty-inp" value="1" oninput="calcRow(this)" required>
+            </td>
+            <td class="p-1 border border-gray-300 text-center">
+                <input type="text" name="products[${rowCount}][unit]" class="w-full border-none bg-transparent text-center unit-disp" readonly>
+            </td>
+            <td class="p-1 border border-gray-300">
+                <input type="number" name="products[${rowCount}][price]" class="w-full border-none bg-transparent text-right price-inp" value="0" oninput="calcRow(this)" required>
+            </td>
+            <td class="p-1 border border-gray-300 text-center">
+                <input type="number" name="products[${rowCount}][disc_1]" class="w-full border-none bg-transparent text-center d1-inp" value="0" oninput="calcRow(this)">
+            </td>
+            <td class="p-1 border border-gray-300 text-center">
+                <input type="number" name="products[${rowCount}][disc_2]" class="w-full border-none bg-transparent text-center d2-inp" value="0" oninput="calcRow(this)">
+            </td>
+            <td class="p-1 border border-gray-300">
+                <input type="number" name="products[${rowCount}][disc_reg]" class="w-full border-none bg-transparent text-right dreg-inp" value="0" oninput="calcRow(this)">
+            </td>
+             <td class="p-1 border border-gray-300">
+                <input type="number" name="products[${rowCount}][disc_promo]" class="w-full border-none bg-transparent text-right dprom-inp" value="0" oninput="calcRow(this)">
+            </td>
+            <td class="p-1 border border-gray-300">
+                <input type="text" class="w-full border-none bg-transparent text-right font-bold sub-disp" readonly value="0">
+                <input type="hidden" name="products[${rowCount}][subtotal_row]" class="sub-val">
+            </td>
+            <td class="p-1 border border-gray-300 text-center">
+                <input type="text" class="w-full border-none bg-transparent text-center text-blue-600 font-bold stock-disp" readonly value="0">
+            </td>
+            <td class="p-1 border border-gray-300 text-center">
+                <button type="button" onclick="delRow(this)" class="text-red-500 font-bold">&times;</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        reindexRows();
+    }
+
+        function setProd(sel) {
+        const tr = sel.closest('tr');
+        const opt = sel.options[sel.selectedIndex];
+        const prodId = sel.value;
+        
+        // Cari data product berdasarkan ID untuk mengisi Kode
+        const productData = products.find(p => p.id == prodId);
+
+        tr.querySelector('.prod-code').value = productData ? (productData.code ?? productData.id) : '';
+        tr.querySelector('.price-inp').value = opt.getAttribute('data-price') || 0;
+        tr.querySelector('.unit-disp').value = opt.getAttribute('data-unit') || 'Pcs';
+        tr.querySelector('.stock-disp').value = opt.getAttribute('data-stock') || 0;
+        calcRow(sel);
+    }
+
+    document.addEventListener('keydown', function(e) {
+        
+        // 1. Shortcut F2 untuk Tambah Baris Manual
+        if(e.key === 'F2') { 
+            e.preventDefault(); 
+            addRow(); 
+            return;
+        }
+
+        // 2. Handle Tombol Enter
+        if (e.key === 'Enter') {
+            const target = e.target;
+
+            // Jangan ganggu Enter di Textarea atau Button
+            if (target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') return;
+
+            e.preventDefault();
+
+            // --- DETEKSI APAKAH DI UJUNG BARIS TABEL? ---
+            const currentTr = target.closest('tr');
+            const tbody = document.getElementById('tableBody');
+
+            // Cek apakah elemen ini ada di dalam Tabel Item
+            if (currentTr && tbody.contains(currentTr)) {
+                // Ambil semua input yang bisa diisi di baris INI saja
+                // (Kecuali hidden, readonly, disabled)
+                const inputsInRow = Array.from(currentTr.querySelectorAll('input:not([type="hidden"]):not([readonly]):not([disabled]), select:not([disabled])'));
+                
+                // Cek posisi index input saat ini di dalam baris
+                const currentIndex = inputsInRow.indexOf(target);
+                const isLastInput = currentIndex === inputsInRow.length - 1;
+
+                // JIKA INI INPUT TERAKHIR DI BARIS ITU -> TAMBAH BARIS BARU
+                if (isLastInput) {
+                    addRow(); // 1. Buat baris baru
+                    
+                    // 2. Tunggu sebentar agar elemen baru muncul di DOM, lalu fokus
+                    setTimeout(() => {
+                        const newTr = tbody.lastElementChild; // Ambil baris paling bawah (baru)
+                        if(newTr) {
+                            // Cari input pertama yang bisa diedit di baris baru (biasanya Select Produk atau Kode)
+                            const firstInput = newTr.querySelector('select:not([disabled]), input:not([readonly]):not([type="hidden"])');
+                            if(firstInput) {
+                                firstInput.focus();
+                                // Opsional: jika itu input text, auto select
+                                if(firstInput.tagName === 'INPUT') firstInput.select(); 
+                            }
+                        }
+                    }, 50); // Delay 50ms cukup untuk render
+                    
+                    return; // Stop, jangan jalankan logika pindah kolom biasa
+                }
+            }
+
+            // --- LOGIKA PINDAH KOLOM BIASA (NEXT FOCUS) ---
+            // Jika bukan di ujung baris tabel, pindah ke kolom sebelah kanannya
+            const form = target.form;
+            if (!form) return;
+
+            const selector = 'input:not([type="hidden"]):not([readonly]):not([disabled]), select:not([disabled]), button[type="submit"]';
+            const focusable = Array.from(form.querySelectorAll(selector));
+            const index = focusable.indexOf(target);
+
+            if (index > -1 && index < focusable.length - 1) {
+                const nextElement = focusable[index + 1];
+                nextElement.focus();
+                
+                // Auto Select Text untuk kemudahan edit
+                if (nextElement.tagName === 'INPUT' && nextElement.type !== 'date') {
+                    nextElement.select();
+                }
+            }
+        }
+    });
+
+        function calcRow(el) {
+            const tr = el.closest('tr');
+            const qty = parseFloat(tr.querySelector('.qty-inp').value) || 0;
+            const price = parseFloat(tr.querySelector('.price-inp').value) || 0;
+            tr.querySelector('.price-inp').value = price.toFixed(0);
+            const d1 = parseFloat(tr.querySelector('.d1-inp').value) || 0;
+            const d2 = parseFloat(tr.querySelector('.d2-inp').value) || 0;
+            const dreg = parseFloat(tr.querySelector('.dreg-inp').value) || 0;
+            const dprom = parseFloat(tr.querySelector('.dprom-inp').value) || 0;
+
+            let total = qty * price;
+            if(d1 > 0) total -= total * (d1/100);
+            if(d2 > 0) total -= total * (d2/100);
+            total = total - dreg - dprom;
+
+            if(total < 0) total = 0;
+
+            tr.querySelector('.sub-disp').value = fmt(total);
+            tr.querySelector('.sub-val').value = total;
+            calculateFooter();
+        }
+
+        function reindexRows() {
+    const rows = document.querySelectorAll('#tableBody tr');
+    rows.forEach((tr, index) => {
+        // Update nomor urut di kolom pertama (index + 1)
+        tr.querySelector('td:first-child').innerText = index + 1;
+        
+        // Opsional: Jika Anda menggunakan index array pada atribut name input (misal products[0][id])
+        // Anda perlu mereset atribut name agar urut juga (penting untuk validasi Laravel)
+        // tr.querySelectorAll('input, select').forEach(input => {
+        //    if(input.name) {
+        //        input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+        //    }
+        // });
+    });
+    
+    // Update variabel global rowCount agar sinkron dengan jumlah baris saat ini
+    rowCount = rows.length;
+}
+
+        function delRow(btn) {
+            btn.closest('tr').remove();
+            calculateFooter();
+            reindexRows();
+        }
+
+        function calculateFooter() {
+        let sub = 0;
+        document.querySelectorAll('.sub-val').forEach(inp => sub += parseFloat(inp.value) || 0);
+
+        const dPct = parseFloat(document.getElementById('discPct').value) || 0;
+        let dAmt = parseFloat(document.getElementById('discAmt').value) || 0;
+        
+        if(dPct > 0) {
+            dAmt = sub * (dPct / 100);
+            document.getElementById('discAmt').value = dAmt;
+        }
+
+        const subAfter = sub - dAmt;
+        const ship = parseFloat(document.getElementById('shipCost').value) || 0;
+        const other = parseFloat(document.getElementById('otherCost').value) || 0;
+        const grandTotalMurni = subAfter + ship + other;
+
+        const typeEle = document.getElementById('transactionType');
+        const dpInput = document.getElementById('downPayment');
+
+        if (typeEle.value === 'Cash') { // Sesuai value di select
+            dpInput.value = grandTotalMurni;
+            dpInput.readOnly = true;
+            dpInput.classList.add('bg-gray-100');
+            document.getElementById('creditDays').value = 0;
+            calcDueDate();
+        } else {
+            dpInput.readOnly = false;
+            dpInput.classList.remove('bg-gray-100');
+        }
+
+        const dp = parseFloat(dpInput.value) || 0;
+        const remain = grandTotalMurni - dp;
+
+        document.getElementById('dispSubtotal').value = fmt(sub);
+        document.getElementById('subtotalHidden').value = sub;
+        document.getElementById('subAfterDisc').value = fmt(subAfter);
+        document.getElementById('subAfterDiscHidden').value = subAfter;
+        document.getElementById('dispGrandTotal').value = fmt(remain); 
+        document.getElementById('grandTotalHidden').value = grandTotalMurni;
+    }
+        const transactionType = document.querySelector('select[name="transaction_type"]');
+const downPaymentInput = document.querySelector('input[name="down_payment"]');
+const grandTotalHidden = document.querySelector('input[name="grand_total_hidden"]');
+
+function handleCashAndCarry() {
+    if (transactionType.value === 'CASH & CARRY' || transactionType.value === 'TRANSFER BANK') {
+        // Isi DP dengan nilai Grand Total
+        downPaymentInput.value = document.getElementById('grand_total').innerText; 
+        // Opsional: Kunci input agar tidak bisa diubah manual
+        downPaymentInput.readOnly = true;
+        downPaymentInput.classList.add('bg-gray-100'); 
+    } else {
+        downPaymentInput.readOnly = false;
+        downPaymentInput.classList.remove('bg-gray-100');
+    }
+}
+
+function fmt(n) {
+    // Gunakan 'id-ID' dengan opsi maximumFractionDigits: 0
+    return new Intl.NumberFormat('id-ID', { 
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0 
+    }).format(n);
+}
+
+        window.onload = function() {
+            calcDueDate();
+            addRow();
+        };
+        
+        document.addEventListener('keydown', e => {
+            if(e.key === 'F2') { e.preventDefault(); addRow(); }
+        });
+    </script>
+    <div id="customerModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-1/2 overflow-hidden">
+        <div class="bg-blue-800 text-white p-3 flex justify-between items-center">
+            <h3 class="font-bold">Pilih Pelanggan</h3>
+            <button type="button" onclick="closeCustModal()" class="text-white">&times;</button>
+        </div>
+        <div class="p-4">
+            <input type="text" id="searchCust" placeholder="Cari Nama / Kota / Alamat..." class="w-full border border-gray-300 rounded px-3 py-2 mb-4 text-sm" onkeyup="filterCustTable()">
+            <div class="max-h-80 overflow-y-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr>
+                            <th class="p-2 border">Kode</th>
+                            <th class="p-2 border">Nama</th>
+                            <th class="p-2 border">Kota</th>
+                            <th class="p-2 border">Alamat</th>
+                            <th class="p-2 border text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="custTableBody">
+                        @foreach($customers as $c)
+                        <tr class="hover:bg-blue-50">
+                            <td class="p-2 border">{{ $c->code ?? $c->id }}</td>
+                            <td class="p-2 border font-bold">{{ $c->name }}</td>
+                            <td class="p-2 border">{{ $c->city }}</td>
+                            <td class="p-2 border text-gray-500">{{ $c->address }}</td>
+                            <td class="p-2 border text-center">
+                                <button type="button" 
+                                    onclick="selectCustomer('{{ $c->id }}', '{{ $c->name }}', '{{ $c->address }}', '{{ $c->city }}')"
+                                    class="bg-blue-600 text-white px-3 py-1 rounded">Pilih</button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</x-layout>

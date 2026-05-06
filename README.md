@@ -23,6 +23,12 @@ A modern Laravel 12 web application built with Blade templating, Tailwind CSS, a
 
 BesindoApp is a Laravel-based application designed for modern web development. It leverages the latest Laravel 12 framework features combined with Tailwind CSS for styling and Vite for efficient asset compilation.
 
+<img width="1919" height="866" alt="Screenshot 2026-02-04 111630" src="https://github.com/user-attachments/assets/336c3d68-29d1-4ec9-a769-ffc3222b59c9" />
+
+<img width="1918" height="860" alt="Screenshot 2026-02-04 111847" src="https://github.com/user-attachments/assets/e486beed-7236-4951-99d5-41fc8f8f3828" />
+
+<img width="1919" height="859" alt="Screenshot 2026-02-05 123452" src="https://github.com/user-attachments/assets/848219bf-de7d-4874-a1e0-1848724aaea8" />
+
 **Repository**: [AurumNuraga/BesindoApp](https://github.com/AurumNuraga/BesindoApp)
 
 ## 🛠 Tech Stack

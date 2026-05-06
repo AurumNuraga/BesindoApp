@@ -19,7 +19,9 @@ A modern Laravel 12 web application built with Blade templating, Tailwind CSS, a
 
 ## 🎯 Overview
 
-BesindoApp is a Laravel-based application designed for modern web development. It leverages the latest Laravel 12 framework features combined with Tailwind CSS for styling and Vite for efficient asset bundling.
+**BesindoApp** is a comprehensive financial management system designed for businesses to efficiently manage their operations. This application provides complete enterprise financial management capabilities including inventory management, purchasing, sales operations, and comprehensive financial reporting. Whether you're tracking stock levels, processing purchase orders, managing sales transactions, or generating detailed financial reports, BesindoApp streamlines all aspects of your company's financial operations in one integrated platform.
+
+BesindoApp is a Laravel-based application designed for modern web development. It leverages the latest Laravel 12 framework features combined with Tailwind CSS for styling and Vite for efficient asset compilation.
 
 **Repository**: [AurumNuraga/BesindoApp](https://github.com/AurumNuraga/BesindoApp)
 
@@ -119,7 +121,7 @@ This starts:
 - **Application**: http://localhost:8000
 - **Vite HMR**: http://localhost:5173
 
-## 📜 Available Scripts
+## �� Available Scripts
 
 ### Backend Scripts
 
@@ -298,4 +300,4 @@ For issues or questions:
 
 ---
 
-**Last Updated**: May 5, 2026
+**Last Updated**: May 6, 2026
